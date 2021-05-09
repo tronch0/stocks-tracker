@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"stocks-tracker/service"
+	"stocks_tracker/service"
 )
 
 func main(){
