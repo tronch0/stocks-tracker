@@ -21,16 +21,16 @@ func New() *CryptoProvider {
 	}
 }
 
-func (cp *CryptoProvider) GetQuote(symbol string) float64 {
+func (cp *CryptoProvider) GetQuote(symbol string) (float64, error) {
 
 	return 0
 }
-func (cp *CryptoProvider) GetQuoteByDate(symbol string, date time.Time) float64 {
+func (cp *CryptoProvider) GetQuoteByDate(symbol string, date string) (float64, error) {
 
 	return 0
 }
 
 
-func (cp *CryptoProvider) getQuoteFromExternalProvider(symbol string, date time.Time) float64 {
+func (cp *CryptoProvider) getQuoteFromExternalProvider(symbol string, date time.Time) (float64, error) {
 
 }

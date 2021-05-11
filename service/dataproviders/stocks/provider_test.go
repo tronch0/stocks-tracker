@@ -1,42 +1,42 @@
 package stocks
 
 import (
-	"fmt"
 	"testing"
 )
 
 func TestGetLatest(t *testing.T) {
 	p := New()
-	res, err := p.GetQuoteByDate("MSFT", "2021-05-06")
+	res, err := p.GetQuote("MSFT")
 
-	fmt.Println(res)
-	fmt.Println(err)
-
+	if err != nil || res == 0 {
+		t.FailNow()
+	}
 }
 
 func TestGetSpecificDate(t *testing.T) {
 	p := New()
 	res, err := p.GetQuoteByDate("MSFT", "2021-05-06")
 
-	fmt.Println(res)
-	fmt.Println(err)
+	if err != nil || res == 0 {
+		t.FailNow()
+	}
 
 }
 
 func TestGetSpecificDateInvalidDate(t *testing.T) {
 	p := New()
-	res, err := p.GetQuoteByDate("MSFT", "2021-05-06")
+	res, err := p.GetQuoteByDate("MSFT", "2021-06")
 
-	fmt.Println(res)
-	fmt.Println(err)
-
+	if err == nil || res != 0 {
+		t.FailNow()
+	}
 }
 
-func TestGetSpecificDateCompactDate(t *testing.T) {
+func TestGetSpecificDateInvalidCompactDate(t *testing.T) {
 	p := New()
-	res, err := p.GetQuoteByDate("MSFT", "2021-05-06")
+	res, err := p.GetQuoteByDate("MSFT", "2021-5-6")
 
-	fmt.Println(res)
-	fmt.Println(err)
-
+	if err == nil || res != 0 {
+		t.FailNow()
+	}
 }
