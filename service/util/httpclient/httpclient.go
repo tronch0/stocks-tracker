@@ -30,24 +30,27 @@ func (c *HttpClient) IsAuthenticated() bool {
 	return c.authToken != ""
 }
 
-func (c *HttpClient) SendGetRequest(url string, queryParam map[string]string) (body []byte, httpStatus int, err error) {
+func (c *HttpClient) SendGetRequest(url string, queryParam map[string]string) (body []byte, err error) {
 	req, err := c.createGetRequest(url, queryParam)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 	log.Println("sending GET request to url " + url)
 	res, err := c.sendRequest(req)
 	if err != nil {
-		return nil, 0, err
+		return nil,  err
 	}
 	defer res.Body.Close()
 
+	if err := checkForSuccessfulResponse(res.StatusCode); err != nil {
+		return nil, err
+	}
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	return resBody, res.StatusCode, nil
+	return resBody, nil
 }
 
 func (c *HttpClient) SendPostRequest(reqBody interface{}, url string) (body []byte, httpStatus int, err error) {
@@ -115,7 +118,7 @@ func (c *HttpClient) sendRequest(req *http.Request) (*http.Response, error) {
 	return client.Do(req)
 }
 
-func CheckForSuccessfulResponse(httpStatus int) (err error) {
+func checkForSuccessfulResponse(httpStatus int) (err error) {
 	if httpStatus < 200 || httpStatus > 299 {
 		if httpStatus == 401 {
 			err = authErr

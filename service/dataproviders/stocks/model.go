@@ -1,16 +1,26 @@
 package stocks
 
 type HttpResponseQuote struct {
-	GlobalQuote struct {
-		Symbol           string `json:"symbol"`
-		Open             string `json:"open"`
-		High             string `json:"high"`
-		Low              string `json:"low"`
-		Price            string `json:"price"`
-		Volume           string `json:"volume"`
-		LatestTradingDay string `json:"latest trading day"`
-		PreviousClose    string `json:"previous close"`
-		Change           string `json:"change"`
-		ChangePercent    string `json:"change percent"`
-	} `json:"Global Quote"`
+	Pagination struct {
+		Limit  int `json:"limit"`
+		Offset int `json:"offset"`
+		Count  int `json:"count"`
+		Total  int `json:"total"`
+	} `json:"pagination"`
+	Data []struct {
+		Open        float64 `json:"open"`
+		High        float64 `json:"high"`
+		Low         float64 `json:"low"`
+		Close       float64 `json:"close"`
+		Volume      float64 `json:"volume"`
+		AdjHigh     float64 `json:"adj_high"`
+		AdjLow      float64 `json:"adj_low"`
+		AdjClose    float64 `json:"adj_close"`
+		AdjOpen     float64 `json:"adj_open"`
+		AdjVolume   float64 `json:"adj_volume"`
+		SplitFactor float64 `json:"split_factor"`
+		Symbol      string  `json:"symbol"`
+		Exchange    string  `json:"exchange"`
+		Date        string  `json:"date"`
+	} `json:"data"`
 }
