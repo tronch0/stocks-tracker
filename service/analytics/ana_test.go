@@ -5,7 +5,7 @@ import (
 )
 
 func TestAnalyticsHappyFlow(t *testing.T) {
-	analytics := New(10)
+	analytics := New()
 
 	analytics.AddRequest(30)
 
@@ -17,23 +17,15 @@ func TestAnalyticsHappyFlow(t *testing.T) {
 		t.Errorf("analytics output was incorrect, got: %d, want: %d", analytics.avgProcessingTime, 50)
 	}
 
-	if analytics.wordsCounter != 10 {
-		t.Errorf("analytics output was incorrect, got: %d, want: %d", analytics.avgProcessingTime, 10)
-	}
-
 	if analytics.requestsCounter != 3 {
 		t.Errorf("analytics output was incorrect, got: %d, want: %d", analytics.avgProcessingTime, 3)
 	}
 }
 
 func TestAnalyticsEmptyStats(t *testing.T) {
-	analytics := New(0)
+	analytics := New()
 
 	if analytics.avgProcessingTime != 0 {
-		t.Errorf("analytics output was incorrect, got: %d, want: %d", analytics.avgProcessingTime, 0)
-	}
-
-	if analytics.wordsCounter != 0 {
 		t.Errorf("analytics output was incorrect, got: %d, want: %d", analytics.avgProcessingTime, 0)
 	}
 
@@ -43,12 +35,8 @@ func TestAnalyticsEmptyStats(t *testing.T) {
 }
 
 func TestGetStatsEmptyStats(t *testing.T) {
-	analytics := New(0)
-	wordsCount, requestCount, avgProcessTime := analytics.GetStats()
-
-	if wordsCount != 0 {
-		t.Errorf("analytics output was incorrect, got: %d, want: %d", analytics.avgProcessingTime, 0)
-	}
+	analytics := New()
+	requestCount, avgProcessTime := analytics.GetStats()
 
 	if  requestCount != 0 {
 		t.Errorf("analytics output was incorrect, got: %d, want: %d", analytics.avgProcessingTime, 0)

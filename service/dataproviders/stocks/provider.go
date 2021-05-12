@@ -3,6 +3,7 @@ package stocks
 import (
 	"github.com/ugorji/go/codec"
 	"stocks_tracker/service/util/httpclient"
+	"time"
 )
 
 var jsonHandle codec.JsonHandle
@@ -17,9 +18,13 @@ type StocksProvider struct {
 }
 
 func New() *StocksProvider {
-	return &StocksProvider{
-		serviceClient: httpclient.New(AUTH_TOKEN),
+	res := &StocksProvider{
+		serviceClient: httpclient.New(),
 	}
+
+	res.serviceClient.SetAuthToken(AUTH_TOKEN)
+
+	return res
 }
 
 func (sp *StocksProvider) GetQuote(symbol string) (float64, error) {
@@ -30,11 +35,12 @@ func (sp *StocksProvider) GetQuote(symbol string) (float64, error) {
 
 	return sp.getQuoteFromExternalProvider(SERVICE_ADDRESS + "/latest", param)
 }
-func (sp *StocksProvider) GetQuoteByDate(symbol, date string) (float64, error) {
+func (sp *StocksProvider) GetQuoteByDate(symbol string, date time.Time) (float64, error) {
+
 	param := make(map[string]string)
 	param["symbols"] = symbol
-	param["date_from"] =  date
-	param["date_to"] =  date
+	param["date_from"] =  date.Format( "2006-01-02")
+	param["date_to"] =  param["date_from"]
 	param["access_key"] = AUTH_TOKEN
 	param["limit"] = "10"
 
@@ -43,6 +49,7 @@ func (sp *StocksProvider) GetQuoteByDate(symbol, date string) (float64, error) {
 
 func (sp *StocksProvider) getQuoteFromExternalProvider(address string, param map[string]string) (float64, error) {
 	resBytes, err := sp.serviceClient.SendGetRequest(address, param)
+
 	if err != nil {
 		return 0, err
 	}

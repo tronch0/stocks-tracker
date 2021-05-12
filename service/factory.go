@@ -10,6 +10,16 @@ import (
 
 func New() error {
 
+	externalProviders := getExternalProvidersMapping()
+
+	stats := analytics.New()
+
+	server := http.NewHttpServer(externalProviders, stats)
+
+	return server.Start()
+}
+
+func getExternalProvidersMapping()map[string]dataproviders.Provider {
 	externalProviders := make(map[string]dataproviders.Provider)
 
 	// create provider a
@@ -18,11 +28,5 @@ func New() error {
 	// create provider b
 	externalProviders["crypto"] = crypto.New()
 
-	stats := analytics.New()
-
-	// send them to server
-	server := http.NewHttpServer(externalProviders, stats)
-
-	// serve
-	return server.Start()
+	return externalProviders
 }

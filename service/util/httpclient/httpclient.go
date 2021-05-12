@@ -1,7 +1,6 @@
 package httpclient
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"github.com/ugorji/go/codec"
@@ -17,8 +16,8 @@ type HttpClient struct {
 	authToken string
 }
 
-func New(authToken string) *HttpClient {
-	return &HttpClient{authToken: authToken}
+func New() *HttpClient {
+	return &HttpClient{}
 }
 
 func (c *HttpClient) SetAuthToken(token string) {
@@ -51,46 +50,6 @@ func (c *HttpClient) SendGetRequest(url string, queryParam map[string]string) (b
 	}
 
 	return resBody, nil
-}
-
-func (c *HttpClient) SendPostRequest(reqBody interface{}, url string) (body []byte, httpStatus int, err error) {
-	req, err := c.createPostRequest(reqBody, url)
-	if err != nil {
-		return nil, 0, err
-	}
-	log.Println("sending POST request to url " + url)
-	res, err := c.sendRequest(req)
-	if err != nil {
-		return nil, 0, err
-	}
-	defer res.Body.Close()
-
-	resBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return resBody, res.StatusCode, nil
-}
-func (c *HttpClient) createPostRequest(body interface{}, url string) (*http.Request, error) {
-	jsonBody := []byte{}
-	enc := codec.NewEncoderBytes(&jsonBody, &jsonHandle)
-	err := enc.Encode(body)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return nil, err
-	}
-	if len(c.authToken) > 0 {
-		req.Header.Set("authorization", "Bearer "+c.authToken)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	return req, nil
 }
 
 func (c *HttpClient) createGetRequest(url string, queryParam map[string]string) (*http.Request, error) {
@@ -132,3 +91,48 @@ func checkForSuccessfulResponse(httpStatus int) (err error) {
 
 	return nil
 }
+
+
+
+
+
+//
+//func (c *HttpClient) SendPostRequest(reqBody interface{}, url string) (body []byte, httpStatus int, err error) {
+//	req, err := c.createPostRequest(reqBody, url)
+//	if err != nil {
+//		return nil, 0, err
+//	}
+//	log.Println("sending POST request to url " + url)
+//	res, err := c.sendRequest(req)
+//	if err != nil {
+//		return nil, 0, err
+//	}
+//	defer res.Body.Close()
+//
+//	resBody, err := ioutil.ReadAll(res.Body)
+//	if err != nil {
+//		return nil, 0, err
+//	}
+//
+//	return resBody, res.StatusCode, nil
+//}
+//func (c *HttpClient) createPostRequest(body interface{}, url string) (*http.Request, error) {
+//	jsonBody := []byte{}
+//	enc := codec.NewEncoderBytes(&jsonBody, &jsonHandle)
+//	err := enc.Encode(body)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+//	if err != nil {
+//		return nil, err
+//	}
+//	if len(c.authToken) > 0 {
+//		req.Header.Set("authorization", "Bearer "+c.authToken)
+//	}
+//
+//	req.Header.Set("Content-Type", "application/json")
+//
+//	return req, nil
+//}

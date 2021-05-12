@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"stocks_tracker/service/analytics"
 	"stocks_tracker/service/dataproviders"
@@ -11,7 +12,10 @@ import (
 	"time"
 )
 
-const ADDRESS = "127.0.0.1:8000"
+const (
+	ADDRESS = "127.0.0.1:8000"
+	PREFIX = "/api/v1/"
+)
 
 type StocksTrackerHttpServer struct {
 	providers map[string]dataproviders.Provider
@@ -33,12 +37,13 @@ func NewHttpServer(providers map[string]dataproviders.Provider, stats *analytics
 }
 
 func (s *StocksTrackerHttpServer) setApiPrefix() {
-	s.router = s.router.PathPrefix("/api/v1/").Subrouter()
+	s.router = s.router.PathPrefix(PREFIX).Subrouter()
 }
 
 func (s *StocksTrackerHttpServer) registerRoutes() {
 	s.router.HandleFunc("/stats", s.getStats).Methods("GET")
-	s.router.HandleFunc("/{assetType}", s.timeTracker(s.getQuote)).Methods("GET").Queries("symbol", "{symbol}","date", "{date}")
+	s.router.HandleFunc("/quotes/{assetType}/{symbol}", s.timeTracker(s.getQuote)).Methods("GET")// .Queries("symbol", "{symbol}","assetType", "{assetType}","date", "{date}")
+	s.router.HandleFunc("/quotes/{assetType}/{symbol}/{date}", s.timeTracker(s.getQuote)).Methods("GET")// .Queries("symbol", "{symbol}","assetType", "{assetType}","date", "{date}")
 }
 
 func (s *StocksTrackerHttpServer) getQuote (w http.ResponseWriter, r *http.Request) {
@@ -53,8 +58,8 @@ func (s *StocksTrackerHttpServer) getQuote (w http.ResponseWriter, r *http.Reque
 
 	var res float64
 
-	if len(date) > 0 {
-		res, err = s.providers[assetType].GetQuoteByDate(symbol,date)
+	if date != nil {
+		res, err = s.providers[assetType].GetQuoteByDate(symbol, *date)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			errResp := &contract.ErrorHttpResponse{Error: err.Error()}
@@ -89,6 +94,7 @@ func (s *StocksTrackerHttpServer) Start() error {
 		ReadTimeout:  15 * time.Second,
 	}
 
+	log.Printf("API up & running @ %s\n", ADDRESS+PREFIX)
 	return srv.ListenAndServe()
 }
 
@@ -113,32 +119,44 @@ func (s *StocksTrackerHttpServer) getStats(w http.ResponseWriter, r *http.Reques
 }
 
 
-func (s *StocksTrackerHttpServer) parseRequestParams(r *http.Request) (assetType, symbol, date string, err error) {
+func (s *StocksTrackerHttpServer) parseRequestParams(r *http.Request) (assetType, symbol string, date *time.Time, err error) {
 	param := mux.Vars(r)
 	//word := r.FormValue("word")
 
 	assetType = param["assetType"]
 	symbol = param["symbol"]
-	date = param["date"]
+	dateStr := param["date"]
 
-	return assetType, symbol, date, s.validateRequestParameter(assetType,symbol,date)
+	err = s.validateRequestParameter(assetType,symbol)
+	if err != nil {
+		return "","",nil,err
+	}
+
+	if len(dateStr) != 0 {
+		d, err := time.Parse( "2006-01-02", dateStr)
+		if err != nil {
+			return "","",nil,fmt.Errorf("error: invalid date paramter (expected formatting: YYYY-MM-DD)")
+		}
+
+		maxHistoryDate := time.Now().AddDate(-1,0,0)
+
+		if maxHistoryDate.After(d) {
+			return "", "", nil, fmt.Errorf("history quotes older than 1 year are not supported")
+		}
+
+		date = &d
+	}
+
+
+	return assetType, symbol, date, nil
 }
-func (s *StocksTrackerHttpServer) validateRequestParameter(assetType, symbol, date string) error {
-	if _, isExist := s.providers["crypto"]; isExist == false {
+func (s *StocksTrackerHttpServer) validateRequestParameter(assetType, symbol string) error {
+	if _, isExist := s.providers[assetType]; isExist == false {
 		return fmt.Errorf("request parameter \"assetType\" is invalid")
 	}
 
 	if len(symbol) == 0 {
 		return fmt.Errorf("request parameter \"symbol\" is invalid")
-	}
-
-	if len(date) != 0  {
-		_, err := time.Parse("YYYY-MM-DD", date)
-		if err != nil {
-			return fmt.Errorf("error: date is not a valid")
-		}
-
-		return fmt.Errorf("request parameter \"type/symbol\" is empty")
 	}
 
 	return nil

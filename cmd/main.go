@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"stocks_tracker/service"
 )
 
 func main(){
-	fmt.Printf("** booting stocks-tracker service **\n")
+	log.Printf("** booting stocks-tracker service **")
 
 	if err := run(); err != nil {
 		fmt.Fprintf(os.Stdout, "%s\n", err)
