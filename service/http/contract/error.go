@@ -1,5 +1,5 @@
 package contract
 
 type ErrorHttpResponse struct {
-	Error string `json:"error"`
+	Error string `codec:"error"`
 }

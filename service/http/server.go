@@ -42,13 +42,13 @@ func (s *StocksTrackerHttpServer) setApiPrefix() {
 
 func (s *StocksTrackerHttpServer) registerRoutes() {
 	s.router.HandleFunc("/stats", s.getStats).Methods("GET")
-	s.router.HandleFunc("/quotes/{assetType}/{symbol}", s.timeTracker(s.getQuote)).Methods("GET")// .Queries("symbol", "{symbol}","assetType", "{assetType}","date", "{date}")
-	s.router.HandleFunc("/quotes/{assetType}/{symbol}/{date}", s.timeTracker(s.getQuote)).Methods("GET")// .Queries("symbol", "{symbol}","assetType", "{assetType}","date", "{date}")
+	s.router.HandleFunc("/quotes/{assetType}/{id}", s.timeTracker(s.getQuote)).Methods("GET")
+	s.router.HandleFunc("/quotes/{assetType}/{id}/{date}", s.timeTracker(s.getQuote)).Methods("GET")
 }
 
 func (s *StocksTrackerHttpServer) getQuote (w http.ResponseWriter, r *http.Request) {
 
-	assetType, symbol, date, err := s.parseRequestParams(r)
+	assetType, id, date, err := s.parseRequestParams(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		errResp := &contract.ErrorHttpResponse{Error: err.Error()}
@@ -59,7 +59,7 @@ func (s *StocksTrackerHttpServer) getQuote (w http.ResponseWriter, r *http.Reque
 	var res float64
 
 	if date != nil {
-		res, err = s.providers[assetType].GetQuoteByDate(symbol, *date)
+		res, err = s.providers[assetType].GetQuoteByDate(id, *date)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			errResp := &contract.ErrorHttpResponse{Error: err.Error()}
@@ -67,7 +67,7 @@ func (s *StocksTrackerHttpServer) getQuote (w http.ResponseWriter, r *http.Reque
 			return
 		}
 	} else {
-		res, err = s.providers[assetType].GetQuote(symbol)
+		res, err = s.providers[assetType].GetQuote(id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			errResp := &contract.ErrorHttpResponse{Error: err.Error()}
@@ -78,7 +78,7 @@ func (s *StocksTrackerHttpServer) getQuote (w http.ResponseWriter, r *http.Reque
 
 	httpRes := &contract.GetQuoteResponse{
 		Price: res,
-		Symbol: symbol,
+		Id:    id,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -119,15 +119,14 @@ func (s *StocksTrackerHttpServer) getStats(w http.ResponseWriter, r *http.Reques
 }
 
 
-func (s *StocksTrackerHttpServer) parseRequestParams(r *http.Request) (assetType, symbol string, date *time.Time, err error) {
+func (s *StocksTrackerHttpServer) parseRequestParams(r *http.Request) (assetType, id string, date *time.Time, err error) {
 	param := mux.Vars(r)
-	//word := r.FormValue("word")
 
 	assetType = param["assetType"]
-	symbol = param["symbol"]
+	id = param["id"]
 	dateStr := param["date"]
 
-	err = s.validateRequestParameter(assetType,symbol)
+	err = s.validateRequestParameter(assetType, id)
 	if err != nil {
 		return "","",nil,err
 	}
@@ -148,15 +147,15 @@ func (s *StocksTrackerHttpServer) parseRequestParams(r *http.Request) (assetType
 	}
 
 
-	return assetType, symbol, date, nil
+	return assetType, id, date, nil
 }
-func (s *StocksTrackerHttpServer) validateRequestParameter(assetType, symbol string) error {
+func (s *StocksTrackerHttpServer) validateRequestParameter(assetType, id string) error {
 	if _, isExist := s.providers[assetType]; isExist == false {
 		return fmt.Errorf("request parameter \"assetType\" is invalid")
 	}
 
-	if len(symbol) == 0 {
-		return fmt.Errorf("request parameter \"symbol\" is invalid")
+	if len(id) == 0 {
+		return fmt.Errorf("request parameter \"id\" is invalid")
 	}
 
 	return nil

@@ -27,18 +27,18 @@ func New() *StocksProvider {
 	return res
 }
 
-func (sp *StocksProvider) GetQuote(symbol string) (float64, error) {
+func (sp *StocksProvider) GetQuote(id string) (float64, error) {
 	param := make(map[string]string)
-	param["symbols"] = symbol
+	param["symbols"] = id
 	param["access_key"] = AUTH_TOKEN
 	param["limit"] = "10"
 
 	return sp.getQuoteFromExternalProvider(SERVICE_ADDRESS + "/latest", param)
 }
-func (sp *StocksProvider) GetQuoteByDate(symbol string, date time.Time) (float64, error) {
+func (sp *StocksProvider) GetQuoteByDate(id string, date time.Time) (float64, error) {
 
 	param := make(map[string]string)
-	param["symbols"] = symbol
+	param["symbols"] = id
 	param["date_from"] =  date.Format( "2006-01-02")
 	param["date_to"] =  param["date_from"]
 	param["access_key"] = AUTH_TOKEN

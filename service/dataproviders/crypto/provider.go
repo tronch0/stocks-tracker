@@ -24,9 +24,9 @@ func New() *CryptoProvider {
 	}
 }
 
-func (cp *CryptoProvider) GetQuote(symbol string) (float64, error) {
+func (cp *CryptoProvider) GetQuote(id string) (float64, error) {
 	param := make(map[string]string)
-	param["ids"] = symbol
+	param["ids"] = id
 	param["vs_currencies"] = "usd"
 	res := make(map[string]map[string]float64)
 
@@ -43,14 +43,14 @@ func (cp *CryptoProvider) GetQuote(symbol string) (float64, error) {
 
 	return 0, fmt.Errorf("coin \"%s\" or price in \"%s\" is not avilable",param["ids"],param["vs_currencies"] )
 }
-func (cp *CryptoProvider) GetQuoteByDate(symbol string, date time.Time) (float64, error) {
+func (cp *CryptoProvider) GetQuoteByDate(id string, date time.Time) (float64, error) {
 	param := make(map[string]string)
 	param["date"] = date.Format("02-01-2006")
 	param["localization"] = "false"
 
 	res := &CoinsIDHistory{}
 
-	err := cp.getQuoteFromExternalProvider(SERVICE_ADDRESS + fmt.Sprintf("/coins/%s/history",symbol), param, res)
+	err := cp.getQuoteFromExternalProvider(SERVICE_ADDRESS + fmt.Sprintf("/coins/%s/history",id), param, res)
 	if err != nil {
 		return 0, err
 	}

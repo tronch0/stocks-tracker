@@ -1,6 +1,6 @@
 package contract
 
 type GetQuoteResponse struct {
-	Price float64 `json:"price"`
-	Symbol string `json:"symbol"`
+	Price float64 `codec:"price"`
+	Id    string  `codec:"id"`
 }
